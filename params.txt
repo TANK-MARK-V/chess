@@ -1,3 +1,0 @@
-debug = 0
-console = 0
-FPS = 60
