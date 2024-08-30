@@ -15,7 +15,7 @@ class Peshka:
         self.walk = 1 if self.color else -1
 
     def information(self):
-        return self.name.capitalize(), self.figure, self.place, const.COLORS[self.color], self.walk, self.first
+        return self.name.capitalize(), self.figure, self.place, const.COLORS[self.color], self.walk, self.first, self.danger
 
     def __str__(self):
         return self.figure
@@ -29,20 +29,27 @@ class Peshka:
 
         kills = set()  # Множество с ходами на фигуры другого цвета
         friends = set()  # Множество с ходами на фигуры своего цвета
-        if self.place[1] and self.place[0] not in (0, 7):
+        if self.place[1] and self.place[0] not in (0, 7):  # Пешка не крайняя слева и не находится в конце доски
             place = board[self.place[0] + self.walk][self.place[1] - 1]
             if type(place) is not void.Void:
                 if self.color != place.color:
                     kills.add((self.place[0] + self.walk, self.place[1] - 1))
                 else:
                     friends.add((self.place[0] + self.walk, self.place[1] - 1))
-        if self.place[1] - 7 and self.place[0] not in (0, 7):
+            place = board[self.place[0]][self.place[1] - 1]
+            if type(place) is Peshka and self.color != place.color and place.danger:
+                kills.add((self.place[0] + self.walk, self.place[1] - 1))
+        if self.place[1] - 7 and self.place[0] not in (0, 7):  # Пешка не крайняя справа и не находится в конце доски
             place = board[self.place[0] + self.walk][self.place[1] + 1]
             if type(place) is not void.Void:
                 if self.color != place.color:
                     kills.add((self.place[0] + self.walk, self.place[1] + 1))
                 else:
                     friends.add((self.place[0] + self.walk, self.place[1] + 1))
+            place = board[self.place[0]][self.place[1] + 1]
+            if type(place) is Peshka and self.color != place.color and place.danger:
+                kills.add((self.place[0] + self.walk, self.place[1] + 1))
+        
 
         if const.DEBUG and info:
             print(*self.information())
@@ -55,4 +62,3 @@ class Peshka:
         self.place = place[:]
         self.danger = False if not checking and not self.first else self.danger
         self.first = False if not checking else self.first
-
