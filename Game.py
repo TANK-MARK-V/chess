@@ -548,7 +548,7 @@ class Peshka:
         self.walk = 1 if self.color else -1
 
     def information(self):
-        return self.name.capitalize(), self.figure, self.place, COLORS[self.color], self.walk, self.first
+        return self.name.capitalize(), self.figure, self.place, COLORS[self.color], self.walk, self.first, self.danger
 
     def __str__(self):
         return self.figure
@@ -562,20 +562,27 @@ class Peshka:
 
         kills = set()  # Множество с ходами на фигуры другого цвета
         friends = set()  # Множество с ходами на фигуры своего цвета
-        if self.place[1] and self.place[0] not in (0, 7):
+        if self.place[1] and self.place[0] not in (0, 7):  # Пешка не крайняя слева и не находится в конце доски
             place = board[self.place[0] + self.walk][self.place[1] - 1]
             if type(place) is not Void:
                 if self.color != place.color:
                     kills.add((self.place[0] + self.walk, self.place[1] - 1))
                 else:
                     friends.add((self.place[0] + self.walk, self.place[1] - 1))
-        if self.place[1] - 7 and self.place[0] not in (0, 7):
+            place = board[self.place[0]][self.place[1] - 1]
+            if type(place) is Peshka and self.color != place.color and place.danger:
+                kills.add((self.place[0] + self.walk, self.place[1] - 1))
+        if self.place[1] - 7 and self.place[0] not in (0, 7):  # Пешка не крайняя справа и не находится в конце доски
             place = board[self.place[0] + self.walk][self.place[1] + 1]
             if type(place) is not Void:
                 if self.color != place.color:
                     kills.add((self.place[0] + self.walk, self.place[1] + 1))
                 else:
                     friends.add((self.place[0] + self.walk, self.place[1] + 1))
+            place = board[self.place[0]][self.place[1] + 1]
+            if type(place) is Peshka and self.color != place.color and place.danger:
+                kills.add((self.place[0] + self.walk, self.place[1] + 1))
+        
 
         if DEBUG and info:
             print(*self.information())
@@ -782,7 +789,7 @@ class Chess:
 
         """Выбранный ход является возможным"""
 
-        if is_king and type(self.board[put[0]][put[1]]) is Ladia:  # Рокировка
+        if is_king and type(self.board[put[0]][put[1]]) is Ladia and self.board[put[0]][put[1]].color == figure.color:  # Рокировка
             if not(figure.first == self.board[put[0]][put[1]].first == True):
                 if not checking:
                     text = 'Фигура уже ходила'
@@ -847,22 +854,22 @@ class Chess:
                             self.moves.clear()
                     return False
 
-        elif type(figure) is Peshka and take[0] == figure.color + 3 and type(self.board[put[0] + -1 ** figure.color][put[1]]) is Peshka and\
-            self.board[put[0] + -1 ** figure.color][put[1]].color != figure.color and self.board[put[0] + -1 ** figure.color][put[1]].danger:
-            killed = self.board[put[0] + -1 ** figure.color][put[1]]
-            self.board[put[0] + -1 ** figure.color][put[1]] = Void()
-            self.board[take[0]][take[1]], self.board[put[0]][put[1]] = self.board[put[0]][put[1]], self.board[take[0]][take[1]]
-            figure.move(put, checking=checking)
-
         elif put in ways:  # Ход на клетку
                 self.board[take[0]][take[1]], self.board[put[0]][put[1]] = self.board[put[0]][put[1]], self.board[take[0]][take[1]]
                 figure.move(put, checking=checking)
 
         elif put in kills:  # Ход на вражескую фигуру
-            killed = self.board[put[0]][put[1]]
-            self.board[put[0]][put[1]] = Void()
-            self.board[take[0]][take[1]], self.board[put[0]][put[1]] = self.board[put[0]][put[1]], self.board[take[0]][take[1]]
-            figure.move(put, checking=checking)
+            if type(figure) is Peshka  and type(self.board[put[0] + (-1 ** figure.color)][put[1]]) is Peshka and\
+                self.board[put[0] + (-1 ** figure.color)][put[1]].color != figure.color and self.board[put[0] + (-1 ** figure.color)][put[1]].danger:
+                killed = self.board[put[0] + (-1 ** figure.color)][put[1]]
+                self.board[put[0] + (-1 ** figure.color)][put[1]] = Void()
+                self.board[take[0]][take[1]], self.board[put[0]][put[1]] = self.board[put[0]][put[1]], self.board[take[0]][take[1]]
+                figure.move(put, checking=checking)
+            else:
+                killed = self.board[put[0]][put[1]]
+                self.board[put[0]][put[1]] = Void()
+                self.board[take[0]][take[1]], self.board[put[0]][put[1]] = self.board[put[0]][put[1]], self.board[take[0]][take[1]]
+                figure.move(put, checking=checking)
         else:
             if not checking:
                 text = 'Невозможный ход'
