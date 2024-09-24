@@ -340,7 +340,10 @@ class Chess:
                 if type(place) is Void:
                     continue
                 uncolor = (place.color + 1) % 2
-                ways, kills, friends = place.can_move(self.board)
+                if type(place) is Peshka:
+                    ways, kills, friends = place.can_move(self.board, danger=True)
+                else:
+                    ways, kills, friends = place.can_move(self.board)
                 info[uncolor]['ways'] = info[uncolor]['ways'] | ways
                 info[uncolor]['kills'] = info[uncolor]['kills'] | kills
                 info[uncolor]['friends'] = info[uncolor]['friends'] | friends
