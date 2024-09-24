@@ -20,12 +20,13 @@ class Peshka:
     def __str__(self):
         return self.figure
 
-    def can_move(self, board, info=False):
+    def can_move(self, board, info=False, danger=False):
         ways = set()  # Множество с ходами на пустые клетки
-        if self.place[0] not in (0, 7) and type(board[self.place[0] + self.walk][self.place[1]]) is void.Void:
-            ways.add((self.place[0] + self.walk, self.place[1]))
-            if self.first and type(board[self.place[0] + self.walk * 2][self.place[1]]) is void.Void:
-                ways.add((self.place[0] + self.walk * 2, self.place[1]))
+        if not danger:  # Если используется не для проверки опасных ходов
+            if self.place[0] not in (0, 7) and type(board[self.place[0] + self.walk][self.place[1]]) is void.Void:
+                ways.add((self.place[0] + self.walk, self.place[1]))
+                if self.first and type(board[self.place[0] + self.walk * 2][self.place[1]]) is void.Void:
+                    ways.add((self.place[0] + self.walk * 2, self.place[1]))
 
         kills = set()  # Множество с ходами на фигуры другого цвета
         friends = set()  # Множество с ходами на фигуры своего цвета
@@ -36,6 +37,8 @@ class Peshka:
                     kills.add((self.place[0] + self.walk, self.place[1] - 1))
                 else:
                     friends.add((self.place[0] + self.walk, self.place[1] - 1))
+            elif danger:
+                ways.add((self.place[0] + self.walk, self.place[1] - 1))
             place = board[self.place[0]][self.place[1] - 1]
             if type(place) is Peshka and self.color != place.color and place.danger:
                 kills.add((self.place[0] + self.walk, self.place[1] - 1))
@@ -46,6 +49,8 @@ class Peshka:
                     kills.add((self.place[0] + self.walk, self.place[1] + 1))
                 else:
                     friends.add((self.place[0] + self.walk, self.place[1] + 1))
+            elif danger:
+                ways.add((self.place[0] + self.walk, self.place[1] + 1))
             place = board[self.place[0]][self.place[1] + 1]
             if type(place) is Peshka and self.color != place.color and place.danger:
                 kills.add((self.place[0] + self.walk, self.place[1] + 1))
